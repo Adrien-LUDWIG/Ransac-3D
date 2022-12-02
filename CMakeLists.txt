@@ -11,4 +11,5 @@ include_directories(eigen src)
 add_executable(main
     src/main.cpp
     src/kdtree.cpp
-    src/obj.cpp)
+    src/obj.cpp
+    src/ransac.cpp)
