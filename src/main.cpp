@@ -27,19 +27,19 @@ int main(int argc, char *argv[]) {
   const uint max_number_of_iterations = 1000;
   std::vector<std::vector<uint>> indexes = ransac(points, threshold, max_number_of_iterations);
 
-  // std::vector<uint> inliers = indexes[0];
-  // std::vector<uint> outliers = indexes[1];
+  Eigen::Vector3f red = {1.0, 0, 0};
+  Eigen::Vector3f green = {0, 1.0, 0};
 
-  std::vector<Eigen::Vector3f> inliers;
-  std::vector<Eigen::Vector3f> outliers;
+
+  std::vector<Eigen::Vector3f> points_color(points.size());
 
   for (uint i : indexes[0])
-    inliers.push_back(points[i]);
+    points_color[i] = red;
 
   for (uint i : indexes[1])
-    outliers.push_back(points[i]);
+    points_color[i] = green;
 
-  save_obj("../data/road.obj", inliers, {});
+  save_obj("../data/road.obj", points, {}, points_color);
 
   return 0;
 }
