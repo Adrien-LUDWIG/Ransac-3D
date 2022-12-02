@@ -38,10 +38,12 @@ void coloring_and_save(std::string filename,
       points.push_back(point);
       colors.push_back(color);
     }
-    color_idx++;
+    color_idx = (color_idx + 1) % COLORS.size();
   }
 
   save_obj(filename, points, {}, colors);
+
+  std::cout << "Saved " << objects.size() << " objects." << std::endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -63,28 +65,10 @@ int main(int argc, char *argv[]) {
 
   // process ----------------------------------------------------------------
   const float threshold = 0.25;
-  const uint max_number_of_iterations = 500;
-
-  /********* SIMPLE RANSAC
-   std::vector<std::vector<uint>> indexes = ransac(points, threshold,
-   max_number_of_iterations);
-
-   Eigen::Vector3f red = {1.0, 0, 0};
-   Eigen::Vector3f green = {0, 1.0, 0};
-
-   std::vector<Eigen::Vector3f> points_color(points.size());
-
-   for (uint i : indexes[0])
-     points_color[i] = red;
-
-   for (uint i : indexes[1])
-     points_color[i] = green;
-
-   save_obj("../data/road.obj", points, {}, points_color);
-   */
+  const uint max_number_of_iterations = 1000;
 
   std::vector<std::vector<Eigen::Vector3f>> objects =
-      ransac_multi(points, threshold, max_number_of_iterations, 21);
+      ransac_multi(points, threshold, max_number_of_iterations, 0.05);
   coloring_and_save("../data/multi_ransac.obj", objects);
 
   return 0;

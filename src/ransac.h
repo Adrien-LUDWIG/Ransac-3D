@@ -11,6 +11,6 @@ std::vector<std::vector<uint>> ransac(
 
 std::vector<std::vector<Eigen::Vector3f>> ransac_multi(
     const std::vector<Eigen::Vector3f>& points, const float threshold,
-    const uint max_number_of_iterations, const uint nb_objects);
+    const uint max_number_of_iterations, const float min_inliers_ratio);
 
 }  // namespace tnp
