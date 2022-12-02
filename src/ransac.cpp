@@ -40,4 +40,35 @@ std::vector<std::vector<uint>> ransac(
   return {best_inliers, best_outliers};
 }
 
+std::vector<std::vector<Eigen::Vector3f>> ransac_multi(
+    const std::vector<Eigen::Vector3f>& points, const float threshold,
+    const uint max_number_of_iterations, const uint nb_objects) {
+
+  std::vector<std::vector<Eigen::Vector3f>> objects;
+  std::vector<Eigen::Vector3f> remaining_points = points;
+
+  for (uint i = 0; i < nb_objects; i++) {
+    if (remaining_points.size() == 0) return objects;
+
+    std::vector<std::vector<uint>> indexes =
+        ransac(remaining_points, threshold, max_number_of_iterations);
+
+    std::vector<Eigen::Vector3f> inliers;
+    std::vector<Eigen::Vector3f> outliers;
+    for (uint i : indexes[0]) {
+      inliers.push_back(remaining_points[i]);
+    }
+
+    for (uint i : indexes[1]) {
+      outliers.push_back(remaining_points[i]);
+    }
+
+    objects.push_back(inliers);
+    remaining_points = outliers;
+  }
+
+  objects.push_back(remaining_points);
+  return objects;
+}
+
 }  // namespace tnp
