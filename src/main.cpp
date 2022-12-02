@@ -5,6 +5,45 @@
 
 using namespace tnp;
 
+std::vector<Eigen::Vector3f> COLORS{{255. / 255., 179. / 255., 0. / 255.},
+                                    {128. / 255., 62. / 255., 117. / 255.},
+                                    {255. / 255., 104. / 255., 0. / 255.},
+                                    {166. / 255., 189. / 255., 215. / 255.},
+                                    {193. / 255., 0. / 255., 32. / 255.},
+                                    {206. / 255., 162. / 255., 98. / 255.},
+                                    {129. / 255., 112. / 255., 102. / 255.},
+                                    {0. / 255., 125. / 255., 52. / 255.},
+                                    {246. / 255., 118. / 255., 142. / 255.},
+                                    {0. / 255., 83. / 255., 138. / 255.},
+                                    {255. / 255., 122. / 255., 92. / 255.},
+                                    {83 / 255, 55. / 255., 122. / 255.},
+                                    {255. / 255., 142. / 255., 0. / 255.},
+                                    {179. / 255., 40. / 255., 81. / 255.},
+                                    {244. / 255., 200. / 255., 0. / 255.},
+                                    {127. / 255., 24. / 255., 13. / 255.},
+                                    {147. / 255., 170. / 255., 0. / 255.},
+                                    {89. / 255., 51. / 255., 21. / 255.},
+                                    {241. / 255., 58. / 255., 19. / 255.},
+                                    {35. / 255., 44. / 255., 22. / 255.}};
+
+void coloring_and_save(std::string filename,
+                       std::vector<std::vector<Eigen::Vector3f>> objects) {
+  std::vector<Eigen::Vector3f> points;
+  std::vector<Eigen::Vector3f> colors;
+
+  uint color_idx = 0;
+  for (std::vector<Eigen::Vector3f> object : objects) {
+    Eigen::Vector3f color = COLORS[color_idx];
+    for (Eigen::Vector3f point : object) {
+      points.push_back(point);
+      colors.push_back(color);
+    }
+    color_idx++;
+  }
+
+  save_obj(filename, points, {}, colors);
+}
+
 int main(int argc, char *argv[]) {
   // option -----------------------------------------------------------------
   if (argc <= 1) {
@@ -22,24 +61,31 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  // process ----------------------------------------------------------------  
-  const float threshold = 0.5;
-  const uint max_number_of_iterations = 1000;
-  std::vector<std::vector<uint>> indexes = ransac(points, threshold, max_number_of_iterations);
+  // process ----------------------------------------------------------------
+  const float threshold = 0.25;
+  const uint max_number_of_iterations = 500;
 
-  Eigen::Vector3f red = {1.0, 0, 0};
-  Eigen::Vector3f green = {0, 1.0, 0};
+  /********* SIMPLE RANSAC
+   std::vector<std::vector<uint>> indexes = ransac(points, threshold,
+   max_number_of_iterations);
 
+   Eigen::Vector3f red = {1.0, 0, 0};
+   Eigen::Vector3f green = {0, 1.0, 0};
 
-  std::vector<Eigen::Vector3f> points_color(points.size());
+   std::vector<Eigen::Vector3f> points_color(points.size());
 
-  for (uint i : indexes[0])
-    points_color[i] = red;
+   for (uint i : indexes[0])
+     points_color[i] = red;
 
-  for (uint i : indexes[1])
-    points_color[i] = green;
+   for (uint i : indexes[1])
+     points_color[i] = green;
 
-  save_obj("../data/road.obj", points, {}, points_color);
+   save_obj("../data/road.obj", points, {}, points_color);
+   */
+
+  std::vector<std::vector<Eigen::Vector3f>> objects =
+      ransac_multi(points, threshold, max_number_of_iterations, 21);
+  coloring_and_save("../data/multi_ransac.obj", objects);
 
   return 0;
 }
