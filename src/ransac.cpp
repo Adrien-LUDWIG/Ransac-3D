@@ -42,13 +42,13 @@ std::vector<std::vector<uint>> ransac(
 
 std::vector<std::vector<Eigen::Vector3f>> ransac_multi(
     const std::vector<Eigen::Vector3f>& points, const float threshold,
-    const uint max_number_of_iterations, const float min_inliers_ratio) {
+    const uint max_number_of_iterations, const uint max_objects, const float min_inliers_ratio) {
   std::vector<std::vector<Eigen::Vector3f>> objects;
   std::vector<Eigen::Vector3f> remaining_points = points;
 
   float inliers_ratio = 1.0;
 
-  while (inliers_ratio >= min_inliers_ratio) {
+  while (objects.size() < max_objects && inliers_ratio >= min_inliers_ratio) {
     if (remaining_points.size() == 0) return objects;
 
     std::vector<std::vector<uint>> indexes =

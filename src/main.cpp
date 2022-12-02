@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
   const uint max_number_of_iterations = 1000;
 
   std::vector<std::vector<Eigen::Vector3f>> objects =
-      ransac_multi(points, threshold, max_number_of_iterations, 0.05);
+      ransac_multi(points, threshold, max_number_of_iterations, 1, 0.05);
   coloring_and_save("../data/multi_ransac.obj", objects);
 
   return 0;
