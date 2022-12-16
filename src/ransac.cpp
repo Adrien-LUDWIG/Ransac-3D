@@ -4,6 +4,8 @@
 
 namespace tnp {
 
+#define NORMAL_ALIGNMENT_THRESHOLD 0.7
+
 // Ransac for plane detection in 3D
 // Normlas should be normalized, otherwise the normal error will be wrong
 // because it would not be a cosine distance anymore
@@ -24,27 +26,42 @@ std::vector<std::vector<uint>> ransac(
         Eigen::Hyperplane<float, 3>::Through(points[a], points[b], points[c]);
 
     std::vector<uint> inliers;
+    std::vector<uint> inliers_backface;
     std::vector<uint> outliers;
 
     // Find inliers
     for (uint i = 0; i < points.size(); i++) {
 
       // Check if point is inlier
-      bool is_inlier = plane.absDistance(points[i]) <= threshold;
+      bool is_close = plane.absDistance(points[i]) <= threshold;
 
       // If normals are given, check if normal is aligned
-      if (normals.has_value())
-        is_inlier &= std::abs(plane.normal().dot(normals.value()[i])) > 0.5f;
-
-      if (is_inlier)
-        inliers.push_back(i);
-      else
+      if (is_close){ 
+        if (normals.has_value()) {
+          float normal_alignment = plane.normal().dot(normals.value()[i]);
+          if (normal_alignment > NORMAL_ALIGNMENT_THRESHOLD)
+            inliers.push_back(i);
+          else if (normal_alignment < -NORMAL_ALIGNMENT_THRESHOLD)
+            inliers_backface.push_back(i);
+        }
+        else {
+          inliers.push_back(i);
+        }
+      }
+      else {
         outliers.push_back(i);
+      }
+
+
     }
 
     // Check if new plane has more inliers
     if (inliers.size() > best_inliers.size()) {
       best_inliers = inliers;
+      best_outliers = outliers;
+    }
+    if (inliers_backface.size() > best_inliers.size()) {
+      best_inliers = inliers_backface;
       best_outliers = outliers;
     }
   }
