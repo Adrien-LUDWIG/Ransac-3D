@@ -4,7 +4,17 @@
 
 namespace tnp {
 
-#define NORMAL_ALIGNMENT_THRESHOLD 0.7
+#define NORMAL_ALIGNMENT_THRESHOLD 0.75
+
+// Merge two vectors
+std::vector<uint> merge(const std::vector<uint>& a,
+                        const std::vector<uint>& b) {
+  std::vector<uint> ab;
+  ab.reserve(a.size() + b.size());
+  ab.insert(ab.end(), a.begin(), a.end());
+  ab.insert(ab.end(), b.begin(), b.end());
+  return ab;
+}
 
 // Ransac for plane detection in 3D
 // Normlas should be normalized, otherwise the normal error will be wrong
@@ -31,38 +41,35 @@ std::vector<std::vector<uint>> ransac(
 
     // Find inliers
     for (uint i = 0; i < points.size(); i++) {
-
-      // Check if point is inlier
-      bool is_close = plane.absDistance(points[i]) <= threshold;
-
-      // If normals are given, check if normal is aligned
-      if (is_close){ 
+      // Check if point is close enough to plane
+      if (plane.absDistance(points[i]) <= threshold) {
+        // If normals are given, check if normal is aligned
         if (normals.has_value()) {
           float normal_alignment = plane.normal().dot(normals.value()[i]);
-          if (normal_alignment > NORMAL_ALIGNMENT_THRESHOLD)
+
+          if (normal_alignment > NORMAL_ALIGNMENT_THRESHOLD) {
             inliers.push_back(i);
-          else if (normal_alignment < -NORMAL_ALIGNMENT_THRESHOLD)
+          } else if (normal_alignment < -NORMAL_ALIGNMENT_THRESHOLD) {
             inliers_backface.push_back(i);
-        }
-        else {
+          } else {
+            outliers.push_back(i);
+          }
+        } else {
           inliers.push_back(i);
         }
-      }
-      else {
+      } else {
         outliers.push_back(i);
       }
-
-
     }
 
     // Check if new plane has more inliers
     if (inliers.size() > best_inliers.size()) {
       best_inliers = inliers;
-      best_outliers = outliers;
+      best_outliers = merge(inliers_backface, outliers);
     }
     if (inliers_backface.size() > best_inliers.size()) {
       best_inliers = inliers_backface;
-      best_outliers = outliers;
+      best_outliers = merge(inliers, outliers);
     }
   }
 
@@ -84,11 +91,13 @@ std::vector<std::vector<Eigen::Vector3f>> ransac_multi(
     if (remaining_points.size() == 0) return objects;
 
     std::vector<std::vector<uint>> indexes =
-        ransac(remaining_points, threshold, max_number_of_iterations, remaining_normals);
+        ransac(remaining_points, threshold, max_number_of_iterations,
+               remaining_normals);
 
     std::vector<Eigen::Vector3f> inliers;
     std::vector<Eigen::Vector3f> outliers;
-    std::vector<Eigen::Vector3f> outliers_normals = std::vector<Eigen::Vector3f>();
+    std::vector<Eigen::Vector3f> outliers_normals =
+        std::vector<Eigen::Vector3f>();
 
     for (uint i : indexes[0]) {
       inliers.push_back(remaining_points[i]);
@@ -96,7 +105,8 @@ std::vector<std::vector<Eigen::Vector3f>> ransac_multi(
 
     for (uint i : indexes[1]) {
       outliers.push_back(remaining_points[i]);
-      if (remaining_normals.has_value()) outliers_normals.push_back(remaining_normals.value()[i]);
+      if (remaining_normals.has_value())
+        outliers_normals.push_back(remaining_normals.value()[i]);
     }
 
     inliers_ratio = float(inliers.size()) / points.size();
