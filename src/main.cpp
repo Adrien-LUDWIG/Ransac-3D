@@ -77,11 +77,11 @@ int main(int argc, char* argv[]) {
   const uint max_number_of_iterations = 1000;
 
   int max_objects = 5;
-  if (argc == 3)
+  if (argc >= 3)
     max_objects = std::stoi(argv[2]);
 
   float min_inliers_ratio = 0.05;
-  if (argc == 4)
+  if (argc >= 4)
     min_inliers_ratio = std::stof(argv[3]);
 
   std::vector<std::vector<Eigen::Vector3f>> objects =
