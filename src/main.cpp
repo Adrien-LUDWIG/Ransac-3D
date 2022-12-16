@@ -56,11 +56,20 @@ int main(int argc, char* argv[]) {
 
   // load -------------------------------------------------------------------
   auto points = std::vector<Eigen::Vector3f>();
-  auto normals = std::vector<Eigen::Vector3f>();
-  if (not tnp::load_obj(filename, points, normals)) {
+  auto normals_buffer = std::vector<Eigen::Vector3f>();
+  if (not tnp::load_obj(filename, points, normals_buffer)) {
     std::cout << "Error: failed to open input file '" << filename << "'"
               << std::endl;
     return 1;
+  }
+
+  std::optional<std::vector<Eigen::Vector3f>> normals;
+  
+  if (!normals_buffer.empty()) {
+    // Normalize the normals
+    for (auto& n : normals_buffer) n.normalize();
+
+    normals = normals_buffer;
   }
 
   // process ----------------------------------------------------------------
@@ -77,7 +86,7 @@ int main(int argc, char* argv[]) {
 
   std::vector<std::vector<Eigen::Vector3f>> objects =
       ransac_multi(points, threshold, max_number_of_iterations, max_objects,
-                   min_inliers_ratio);
+                   min_inliers_ratio, normals);
 
   coloring_and_save("../data/multi_ransac.obj", objects);
 
