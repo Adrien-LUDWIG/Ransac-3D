@@ -87,7 +87,7 @@ std::pair<std::vector<uint>, std::vector<uint>> outliers_removal(
 
 std::pair<std::vector<uint>, std::vector<uint>> ransac(
     const std::vector<Eigen::Vector3f>& points, const float threshold,
-    const uint max_number_of_iterations) {
+    const uint max_number_of_iterations, bool remove_outliers) {
   std::vector<uint> best_inliers;
   std::vector<uint> best_outliers;
 
@@ -117,13 +117,17 @@ std::pair<std::vector<uint>, std::vector<uint>> ransac(
       best_outliers = outliers;
     }
   }
-  return outliers_removal(points, best_inliers, best_outliers);
+
+
+  if (remove_outliers)
+    return outliers_removal(points, best_inliers, best_outliers);
+  return {best_inliers, best_outliers};
 }
 
 std::vector<std::vector<Eigen::Vector3f>> ransac_multi(
     const std::vector<Eigen::Vector3f>& points, const float threshold,
     const uint max_number_of_iterations, const uint max_objects,
-    const float min_inliers_ratio) {
+    const float min_inliers_ratio, bool remove_outliers) {
   std::vector<std::vector<Eigen::Vector3f>> objects;
   std::vector<Eigen::Vector3f> remaining_points = points;
 
@@ -133,7 +137,7 @@ std::vector<std::vector<Eigen::Vector3f>> ransac_multi(
     if (remaining_points.size() == 0) return objects;
 
     std::pair<std::vector<uint>, std::vector<uint>> indexes =
-        ransac(remaining_points, threshold, max_number_of_iterations);
+        ransac(remaining_points, threshold, max_number_of_iterations, remove_outliers);
 
     std::vector<Eigen::Vector3f> inliers;
     std::vector<Eigen::Vector3f> outliers;
