@@ -46,7 +46,7 @@ void coloring_and_save(std::string filename,
   std::cout << "Saved " << objects.size() << " objects." << std::endl;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   // option -----------------------------------------------------------------
   if (argc <= 1) {
     std::cout << "Error: missing filename" << std::endl;
@@ -56,19 +56,38 @@ int main(int argc, char *argv[]) {
 
   // load -------------------------------------------------------------------
   auto points = std::vector<Eigen::Vector3f>();
-  auto normals = std::vector<Eigen::Vector3f>();
-  if (not tnp::load_obj(filename, points, normals)) {
+  auto normals_buffer = std::vector<Eigen::Vector3f>();
+  if (not tnp::load_obj(filename, points, normals_buffer)) {
     std::cout << "Error: failed to open input file '" << filename << "'"
               << std::endl;
     return 1;
+  }
+
+  std::optional<std::vector<Eigen::Vector3f>> normals;
+  
+  if (!normals_buffer.empty()) {
+    // Normalize the normals
+    for (auto& n : normals_buffer) n.normalize();
+
+    normals = normals_buffer;
   }
 
   // process ----------------------------------------------------------------
   const float threshold = 0.25;
   const uint max_number_of_iterations = 1000;
 
+  int max_objects = 5;
+  if (argc >= 3)
+    max_objects = std::stoi(argv[2]);
+
+  float min_inliers_ratio = 0.05;
+  if (argc >= 4)
+    min_inliers_ratio = std::stof(argv[3]);
+
   std::vector<std::vector<Eigen::Vector3f>> objects =
-      ransac_multi(points, threshold, max_number_of_iterations, 1, 0.05);
+      ransac_multi(points, threshold, max_number_of_iterations, max_objects,
+                   min_inliers_ratio, normals);
+
   coloring_and_save("../data/multi_ransac.obj", objects);
 
   return 0;
