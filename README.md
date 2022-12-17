@@ -7,6 +7,20 @@ RANdom SAmple Consensus algorithm implemented in C++ for a course of point cloud
 - Adrien ANTON LUDWIG
 - Adèle PLUQUET
 
+## Installation from git
+
+```bash
+$ git clone --recurse-submodules https://github.com/Adrien-ANTON-LUDWIG/Ransac-3D.git
+```
+
+or 
+
+```bash
+$ git clone https://github.com/Adrien-ANTON-LUDWIG/Ransac-3D.git
+$ git submodule init
+$ git submodule update
+```
+
 ## Usage
 
 ```bash
